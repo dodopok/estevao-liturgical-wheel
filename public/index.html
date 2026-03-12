@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O Ano Litúrgico — Calendário do Ano Cristão | Caminho Anglicano</title>
+<meta name="description" content="Calendário visual do Ano Litúrgico Cristão com estações, datas e celebrações do calendário anglicano. Gerado a partir do Livro de Oração Comum.">
+<meta name="keywords" content="ano litúrgico, calendário cristão, anglicano, advento, natal, quaresma, páscoa, tempo comum, livro de oração comum">
+<meta name="author" content="Caminho Anglicano">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://calendario.caminhoanglicano.com.br/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="O Ano Litúrgico — Calendário do Ano Cristão">
+<meta property="og:description" content="Calendário visual do Ano Litúrgico Cristão com estações, datas e celebrações do calendário anglicano.">
+<meta property="og:url" content="https://calendario.caminhoanglicano.com.br/">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Caminho Anglicano">
+
+<!-- Favicons -->
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .page {
+    width: min(860px, 100vw);
+    padding: clamp(10px, 3vw, 25px) clamp(10px, 3vw, 30px) clamp(8px, 2vw, 15px);
+    text-align: center;
+  }
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 400;
+    font-size: clamp(22px, 5vw, 42px);
+    color: #b8943e;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+  }
+  h2 {
+    font-family: 'Cinzel', serif;
+    font-weight: 400;
+    font-size: clamp(10px, 2vw, 16px);
+    color: #b8943e;
+    letter-spacing: 1.5px;
+    margin-bottom: clamp(8px, 2vw, 15px);
+    text-transform: uppercase;
+  }
+  .wheel-container {
+    position: relative;
+    width: min(780px, calc(100vw - 20px));
+    height: min(780px, calc(100vw - 20px));
+    margin: 0 auto;
+  }
+  svg.wheel { width: 100%; height: 100%; }
+  .footer {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(7px, 1.2vw, 9px);
+    color: #aaa;
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  #panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 220px;
+    z-index: 1000;
+    font-family: sans-serif;
+    border: 1px solid #eee;
+    text-align: left;
+  }
+  #panel h3 { margin: 0 0 15px; font-size: 18px; color: #333; }
+  #panel label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  #panel input, #panel select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  #panel button {
+    width: 100%;
+    padding: 10px;
+    background: #b8943e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #panel button:hover { background: #a07830; }
+  #status { margin-top: 10px; font-size: 12px; color: #888; text-align: center; }
+
+  #btn-pdf {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: #b8943e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #btn-pdf:hover { background: #a07830; }
+  #btn-pdf:disabled { background: #ccc; cursor: wait; }
+
+  @media (max-width: 700px) {
+    body {
+      display: block;
+      padding-bottom: 80px;
+    }
+    .page {
+      width: 100%;
+      padding: 16px 12px 12px;
+    }
+    h1 { font-size: clamp(20px, 7vw, 32px); }
+    h2 { font-size: clamp(9px, 3vw, 13px); }
+    .wheel-container {
+      width: calc(100vw - 24px);
+      height: calc(100vw - 24px);
+    }
+    #panel {
+      position: static;
+      width: calc(100% - 24px);
+      max-width: 100%;
+      margin: 16px 12px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    #btn-pdf {
+      bottom: 12px;
+      right: 12px;
+      font-size: 11px;
+      padding: 8px 14px;
+    }
+  }
+
+  @media print {
+    @page { size: A3 portrait; margin: 0; }
+    #panel, #btn-pdf { display: none !important; }
+
+    body {
+      background: white;
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+
+    .page {
+      width: 100%;
+      min-height: 420mm;
+      padding: 14mm 12mm 14mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-header {
+      text-align: center;
+      padding-top: 22mm;
+    }
+
+    h1 {
+      font-size: 52pt !important;
+      margin-bottom: 2mm;
+      letter-spacing: 3px;
+    }
+
+    h2 {
+      font-size: 16pt !important;
+      margin-bottom: 0;
+      letter-spacing: 2px;
+    }
+
+    .wheel-container {
+      width: 255mm;
+      height: 255mm;
+      margin: 0 auto;
+    }
+
+    .footer {
+      margin-top: 6mm;
+      font-size: 8pt;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="page-header">
+    <h1 id="main-title">O Ano Litúrgico</h1>
+    <h2 id="sub-title">Calendário do Ano Cristão</h2>
+  </div>
+  <div class="wheel-container">
+    <svg class="wheel" viewBox="-390 -390 780 780" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="footer">Calendário do Ano Cristão · CaminhoAnglicano.com.br</div>
+</div>
+
+<button id="btn-pdf" onclick="downloadPdf()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  Baixar PDF A3
+</button>
+
+<div id="panel">
+  <h3>Configurar</h3>
+  <label>Ano do Ciclo (Final)</label>
+  <input type="number" id="inp-year" value="2026" min="2020" max="2035">
+  <label>Livro de Orações</label>
+  <select id="inp-pb">
+    <option value="loc_1662">LOC 1662</option>
+    <option value="loc_1987">LOC 1987</option>
+    <option value="locb_2008">LOCB 2008</option>
+    <option value="loc_2015" selected>LOC 2015</option>
+    <option value="loc_2021">LOC 2021</option>
+  </select>
+  <button onclick="generate()">Gerar Calendário</button>
+  <div id="status"></div>
+</div>
+
+<script>
+const CX = 0, CY = 0;
+const R_MONTHS_INNER  = 105;
+const R_MONTHS_OUTER  = 122;
+const R_ENTRIES_INNER = 125;
+const R_ENTRIES_OUTER = 340;
+const R_SEASONS_INNER = 340;
+const R_SEASONS_OUTER = 368;
+
+const COLOR_MAP = {
+  "branco": "#F5EDD8", "verde": "#3B6E34", "roxo": "#5B2D86",
+  "violeta": "#5B2D86", "vermelho": "#AB1F1F", "rosa": "#CC6B88",
+  "preto": "#333333", "dourado": "#D4B86A"
+};
+
+const SEASON_COLORS = {
+  "season-advent": "#6F1F52", "season-christmas": "#F5EDD8",
+  "season-epiphany": "#4A7C59", "season-lent": "#6F1F52",
+  "season-holy-week": "#A82832", "season-easter": "#F5EDD8",
+  "season-ordinary-time": "#4A7C59"
+};
+
+const MONTH_NAMES = [
+  "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+  "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+];
+const MONTH_ABBR = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const svg = document.querySelector("svg.wheel");
+let idCounter = 0;
+const uid = () => `p${idCounter++}`;
+
+function polar(r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
+}
+
+function wedgePath(rIn, rOut, a1, a2) {
+  const p1 = polar(rOut, a1), p2 = polar(rOut, a2);
+  const p3 = polar(rIn, a2),  p4 = polar(rIn, a1);
+  const lg = Math.abs(a2 - a1) > 180 ? 1 : 0;
+  return `M${p1.x},${p1.y} A${rOut},${rOut} 0 ${lg} 1 ${p2.x},${p2.y} L${p3.x},${p3.y} A${rIn},${rIn} 0 ${lg} 0 ${p4.x},${p4.y}Z`;
+}
+
+function arcPath(r, a1, a2, flip) {
+  if (flip) {
+    const s = polar(r, a2), e = polar(r, a1);
+    const lg = Math.abs(a2 - a1) > 180 ? 1 : 0;
+    return `M${s.x},${s.y} A${r},${r} 0 ${lg} 0 ${e.x},${e.y}`;
+  }
+  const s = polar(r, a1), e = polar(r, a2);
+  const lg = Math.abs(a2 - a1) > 180 ? 1 : 0;
+  return `M${s.x},${s.y} A${r},${r} 0 ${lg} 1 ${e.x},${e.y}`;
+}
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k, v);
+  (parent || svg).appendChild(e);
+  return e;
+}
+
+function textOnArc(pathD, txt, fontSize, fill, fontFamily, fontWeight, letterSpacing) {
+  const id = uid();
+  el("path", { id, d: pathD, fill: "none" });
+  const t = el("text", {
+    fill, "font-family": fontFamily || "'Cinzel', serif",
+    "font-size": fontSize, "font-weight": fontWeight || "600",
+    "letter-spacing": letterSpacing || "0"
+  });
+  const tp = document.createElementNS(SVG_NS, "textPath");
+  tp.setAttribute("href", `#${id}`);
+  tp.setAttribute("startOffset", "50%");
+  tp.setAttribute("text-anchor", "middle");
+  tp.textContent = txt;
+  t.appendChild(tp);
+  svg.appendChild(t);
+}
+
+function dateToAngle(dateStr, totalDays, startDate) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  const diffTime = d - startDate;
+  const dayIndex = diffTime / (1000 * 60 * 60 * 24);
+  return (dayIndex * (360 / totalDays));
+}
+
+async function fetchApi(endpoint, year, pb) {
+  const resp = await fetch(`/api/${year}/${endpoint}?pb=${encodeURIComponent(pb)}`);
+  if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+  return resp.json();
+}
+
+function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev, keyDatesPrev) {
+  svg.innerHTML = '';
+
+  const advent1PrevDate = keyDatesPrev.first_sunday_of_advent?.date;
+  const advent1CurrDate = overview.key_dates?.first_sunday_of_advent?.date;
+  if (!advent1PrevDate || !advent1CurrDate) return;
+
+  const startDate = new Date(advent1PrevDate + 'T12:00:00Z');
+  const endDate = new Date(advent1CurrDate + 'T12:00:00Z');
+  endDate.setUTCDate(endDate.getUTCDate() - 1);
+
+  const totalDays = Math.round((endDate - startDate) / (1000*60*60*24)) + 1;
+
+  // --- 1. COLLECT ALL ENTRIES ---
+  const allCelebrations = [...(celebrationsPrev || []), ...(celebrationsCurr || [])];
+  const renderedEntries = [];
+
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(startDate);
+    d.setUTCDate(d.getUTCDate() + i);
+    const ds = d.toISOString().split('T')[0];
+    const isSunday = d.getUTCDay() === 0;
+    const dayCelebs = allCelebrations.filter(c => c.date === ds);
+    const importantCeleb = dayCelebs.find(c => ['principal_feast', 'major_holy_day', 'sunday'].includes(c.type));
+    const sundayEvent = isSunday ? (dayCelebs.find(c => c.type === 'sunday') || { name: "DOMINGO", color: "verde", type: "sunday" }) : null;
+    const entry = importantCeleb || sundayEvent;
+    if (entry && (['principal_feast', 'major_holy_day', 'sunday'].includes(entry.type) || isSunday)) {
+      renderedEntries.push({ ...entry, index: i, dateStr: ds });
+    }
+  }
+
+  // --- 2. EQUAL-SLOT LAYOUT ---
+  const N = renderedEntries.length;
+  const slotAngle = 360 / N;
+  const gap = 0;
+
+  // --- 3. SEASONS RING ---
+  const allSeasons = [...(overviewPrev.seasons || []), ...(overview.seasons || [])];
+  const seenSeasons = new Set();
+  const sortedSeasons = allSeasons
+    .filter(s => { const k = s.slug + s.start_date; if (seenSeasons.has(k)) return false; seenSeasons.add(k); return true; })
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  renderedEntries.forEach(entry => {
+    entry._season = sortedSeasons.find(s => entry.dateStr >= s.start_date && entry.dateStr <= s.end_date) || null;
+  });
+  renderedEntries.forEach((entry, idx) => {
+    if (entry._season) return;
+    for (let j = idx - 1; j >= 0; j--) { if (renderedEntries[j]._season) { entry._season = renderedEntries[j]._season; return; } }
+    for (let j = idx + 1; j < N; j++) { if (renderedEntries[j]._season) { entry._season = renderedEntries[j]._season; return; } }
+  });
+
+  renderedEntries.forEach((entry, idx) => {
+    const color = SEASON_COLORS[entry._season?.slug] || "#4A7C59";
+    el("path", { d: wedgePath(R_SEASONS_INNER, R_SEASONS_OUTER, idx * slotAngle, (idx + 1) * slotAngle), fill: color, stroke: "none" });
+  });
+
+  const SEASON_ENTRY_COLOR = {
+    "season-advent": "violeta", "season-christmas": "branco",
+    "season-epiphany": "verde",  "season-lent": "violeta",
+    "season-holy-week": "vermelho", "season-easter": "branco",
+    "season-ordinary-time": "verde"
+  };
+  renderedEntries.forEach(entry => {
+    if (entry.type === 'sunday' && entry._season) {
+      const c = SEASON_ENTRY_COLOR[entry._season.slug];
+      if (c) entry.color = c;
+    }
+  });
+
+  const seasonGroups = [];
+  let curGroup = null;
+  renderedEntries.forEach((entry, idx) => {
+    const slug = entry._season?.slug || '_none';
+    if (!curGroup || curGroup.slug !== slug) {
+      curGroup = { slug, season: entry._season, startIdx: idx, endIdx: idx };
+      seasonGroups.push(curGroup);
+    } else { curGroup.endIdx = idx; }
+  });
+  seasonGroups.forEach((g, gi) => {
+    const a1 = g.startIdx * slotAngle;
+    const a2 = (g.endIdx + 1) * slotAngle;
+    if (gi > 0) {
+      const p1 = polar(R_SEASONS_INNER, a1), p2 = polar(R_SEASONS_OUTER, a1);
+      el("line", { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: "#fff", "stroke-width": "1.5" });
+    }
+    if (!g.season) return;
+    const color = SEASON_COLORS[g.season.slug] || "#4A7C59";
+    const textColor = (color === "#F5EDD8") ? "#b8943e" : "#fff";
+    const mid = (a1 + a2) / 2;
+    const flip = mid > 90 && mid < 270;
+    textOnArc(arcPath((R_SEASONS_INNER + R_SEASONS_OUTER) / 2, a1 + 1, a2 - 1, flip), g.season.name.toUpperCase(), "10", textColor, "'Cinzel', serif", "700", "4");
+  });
+
+  // --- 4. MONTHS RING (computed here, drawn after decoration) ---
+  let lastMonthKey = '';
+  const monthSlots = [];
+  renderedEntries.forEach((entry, idx) => {
+    const [y, m] = entry.dateStr.split('-');
+    const k = `${y}-${m}`;
+    if (k !== lastMonthKey) {
+      if (monthSlots.length > 0) monthSlots[monthSlots.length - 1].endIdx = idx - 1;
+      monthSlots.push({ abbr: MONTH_ABBR[parseInt(m) - 1], startIdx: idx, endIdx: N - 1 });
+      lastMonthKey = k;
+    }
+  });
+  for (let i = monthSlots.length - 1; i >= 0; i--) {
+    if (monthSlots[i].endIdx - monthSlots[i].startIdx + 1 < 3) {
+      const next = monthSlots[i + 1];
+      const prev = monthSlots[i - 1];
+      if (next) next.startIdx = monthSlots[i].startIdx;
+      else if (prev) prev.endIdx = monthSlots[i].endIdx;
+      monthSlots.splice(i, 1);
+    }
+  }
+
+  // --- 5. ENTRY WEDGES ---
+  renderedEntries.forEach((entry, idx) => {
+    const a1   = idx * slotAngle + gap;
+    const a2   = (idx + 1) * slotAngle - gap;
+    const midA = (idx + 0.5) * slotAngle;
+
+    const bg   = COLOR_MAP[entry.color?.toLowerCase()] || "#F5EDD8";
+    const text = (bg === "#F5EDD8") ? "#4a3a1e" : "#fff";
+
+    el("path", { d: wedgePath(R_ENTRIES_INNER, R_ENTRIES_OUTER, a1, a2), fill: bg, stroke: "#fff", "stroke-width": "0.5" });
+
+    const displayName = (entry.name || "DOMINGO").toUpperCase();
+    const fs = displayName.length > 55 ? "4.5" : displayName.length > 40 ? "5.5" : "6.5";
+
+    const needsFlip = midA < 180;
+    const ptOuter = polar(R_ENTRIES_OUTER - 13, midA);
+    const ptInner = polar(R_ENTRIES_INNER + 16, midA);
+
+    const pathId = uid();
+    el("path", { id: pathId, d: `M${ptOuter.x},${ptOuter.y} L${ptInner.x},${ptInner.y}`, fill: "none" });
+
+    const textContent = needsFlip ? [...displayName].reverse().join('') : displayName;
+    const textAttrs = {
+      fill: text, "font-family": "'Cinzel', serif",
+      "font-size": fs, "font-weight": "700", "dominant-baseline": "central"
+    };
+    if (needsFlip) textAttrs.rotate = "180";
+
+    const t = el("text", textAttrs);
+    const tp = document.createElementNS(SVG_NS, "textPath");
+    tp.setAttribute("href", `#${pathId}`);
+    tp.setAttribute("startOffset", "0%");
+    tp.textContent = textContent;
+    t.appendChild(tp);
+
+    // Day number — inner arc, just inside entries ring
+    const dayNum = entry.dateStr.split('-')[2].replace(/^0/, '');
+    const flip2 = midA > 90 && midA < 270;
+    textOnArc(arcPath(R_ENTRIES_INNER + 8, a1 + 0.3, a2 - 0.3, flip2), dayNum, "7", text, "'Cinzel', serif", "700", "0.5");
+  });
+
+  // --- 6. DECORATION & CENTER ---
+  [R_ENTRIES_INNER, R_ENTRIES_OUTER, R_SEASONS_INNER, R_SEASONS_OUTER].forEach(r =>
+    el("circle", { cx: 0, cy: 0, r, fill: "none", stroke: "#c9a94e", "stroke-width": "0.8", opacity: "0.6" })
+  );
+  el("circle", { cx: 0, cy: 0, r: R_ENTRIES_INNER-2, fill: "#fdfaf0", stroke: "#c9a94e", "stroke-width": "1.5" });
+
+  // Months ring drawn on top of center circle
+  monthSlots.forEach(m => {
+    const a1 = m.startIdx * slotAngle;
+    const a2 = (m.endIdx + 1) * slotAngle;
+    el("path", { d: wedgePath(R_MONTHS_INNER, R_MONTHS_OUTER, a1, a2), fill: "#ede5d0", stroke: "#c9b98a", "stroke-width": "0.4" });
+    const mid = (a1 + a2) / 2;
+    const flip = mid > 90 && mid < 270;
+    textOnArc(arcPath((R_MONTHS_INNER + R_MONTHS_OUTER) / 2, a1, a2, flip), m.abbr, "7", "#8a7650", "'Cinzel', serif", "600", "1");
+  });
+
+  el("text", { x: 0, y: 0, fill: "#a08030", "font-family": "'Cinzel Decorative', serif", "font-size": "14", "text-anchor": "middle", "dominant-baseline": "central", "letter-spacing": "2" }).textContent = "AGNUS DEI";
+
+  const irR = (78 + 102) / 2;
+  const irId = uid();
+  const irPath = `M${polar(irR, 180).x},${polar(irR, 180).y} A${irR},${irR} 0 1 1 ${polar(irR, 180).x + 0.1},${polar(irR, 180).y}`;
+  el("path", { id: irId, d: irPath, fill: "none" });
+  const irText = el("text", { fill: "#8a6e2f", "font-family": "'Cinzel', serif", "font-size": "7", "letter-spacing": "2.5" });
+  const irTp = document.createElementNS(SVG_NS, "textPath");
+  irTp.setAttribute("href", `#${irId}`);
+  irTp.setAttribute("startOffset", "50%");
+  irTp.setAttribute("text-anchor", "middle");
+  irTp.textContent = "EIS O CORDEIRO DE DEUS, QUE TIRA O PECADO DO MUNDO";
+  irText.appendChild(irTp);
+}
+
+async function generate() {
+  const year = document.getElementById('inp-year').value;
+  const pb = document.getElementById('inp-pb').value;
+  const status = document.getElementById('status');
+  status.textContent = "Buscando dados...";
+  window._wheelReady = false;
+  try {
+    const [overview, keyDatesPrev, overviewPrev, celebrationsCurr, celebrationsPrev] = await Promise.all([
+      fetchApi('overview', year, pb),
+      fetchApi('key_dates', parseInt(year)-1, pb),
+      fetchApi('overview', parseInt(year)-1, pb),
+      fetchApi('celebrations', year, pb),
+      fetchApi('celebrations', parseInt(year)-1, pb),
+    ]);
+    document.getElementById('sub-title').textContent = `Calendário do Ano Cristão ${parseInt(year) - 1} – ${year}`;
+    renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev, keyDatesPrev);
+    status.textContent = "Concluído!";
+    window._wheelReady = true;
+  } catch (err) {
+    status.textContent = "Erro ao buscar dados da API.";
+    console.error(err);
+  }
+}
+
+function downloadPdf() {
+  window.print();
+}
+
+// Auto-generate when loaded by Puppeteer for PDF export
+const _params = new URLSearchParams(location.search);
+if (_params.get('autoGenerate')) {
+  document.getElementById('inp-year').value = _params.get('year') || '2026';
+  document.getElementById('inp-pb').value = _params.get('pb') || 'loc_2015';
+  generate();
+} else {
+  generate();
+}
+</script>
+</body>
+</html>

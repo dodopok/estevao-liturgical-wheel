@@ -1,0 +1,8 @@
+{
+  "name": "liturgical-wheel",
+  "version": "1.0.0",
+  "description": "O Ano Litúrgico — Calendário do Ano Cristão",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}

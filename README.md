@@ -1,129 +1,116 @@
-# Liturgical Year Wheel
+# O Ano Litúrgico — Calendário do Ano Cristão
 
-Gera um pôster circular do ano litúrgico em SVG, buscando os dados diretamente na **Ordo API** com uma API key.
-
-O resultado final é um arquivo SVG em tamanho A4 (2480 × 3508 px @ 300 dpi) com:
-
-- **Seis quadras litúrgicas** coloridas em anel (Advento, Natal, Epifania, Quaresma, Páscoa, Tempo Comum)
-- **Raios/spokes** para cada domingo e celebração (Festas Principais + Dias Santos)
-- Cada raio na **cor litúrgica** do dia
-- **Rótulo de mês** em arco externo
-- **Medalhão central** (com imagem opcional do Cordeiro)
-- Título e rodapé customizáveis
+Aplicação web que gera um calendário circular interativo do Ano Litúrgico Anglicano, buscando os dados da **Ordo API**. Disponível em **[calendario.caminhoanglicano.com.br](https://calendario.caminhoanglicano.com.br)**.
 
 ---
 
-## Setup
+## O que é
+
+Uma roda visual do Ano Litúrgico com:
+
+- **Anel externo** com as estações litúrgicas coloridas (Advento, Natal, Epifania, Quaresma, Semana Santa, Páscoa, Tempo Comum)
+- **Raios** para cada domingo, Festa Principal e Dia Santo — na cor litúrgica do dia
+- **Anel de meses** com os meses do ano civil
+- **Números dos dias** em arco interno
+- **Medalhão central** com a inscrição "Agnus Dei" e "Eis o Cordeiro de Deus"
+- Suporte a múltiplos **Livros de Oração** (LOC 1662, 1987, LOCB 2008, LOC 2015, LOC 2021)
+- Download de **PDF A3 vetorizado** via impressão nativa do browser
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend | HTML + SVG + JavaScript vanilla |
+| Servidor / Proxy | Vercel Serverless Functions |
+| PDF | `window.print()` com `@page { size: A3 }` (vetorizado) |
+| Dados | [Ordo API](http://localhost:3000) |
+
+---
+
+## Desenvolvimento local
+
+**Pré-requisito:** [Vercel CLI](https://vercel.com/docs/cli)
+
+```bash
+npm install -g vercel
+```
+
+Clone e configure:
 
 ```bash
 git clone <este-repo>
 cd liturgical-wheel
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+cp .env.example .env   # preencha as variáveis
+```
+
+Crie um `.env` com:
+
+```env
+LITURGICAL_API_KEY=sua_chave_aqui
+LITURGICAL_API_BASE=http://localhost:3000/api/v1
+```
+
+Rode localmente:
+
+```bash
+npx vercel dev
+# → http://localhost:3000
 ```
 
 ---
 
-## Uso
-
-### Básico
+## Deploy na Vercel
 
 ```bash
-python generate.py \
-  --liturgical-year 2026 \
-  --api-key estevao_SEU_KEY_AQUI
+npx vercel --prod
 ```
 
-Gera `wheel_2025_2026.svg` no diretório atual.
+Configure as variáveis de ambiente no dashboard da Vercel em **Settings → Environment Variables**:
 
-### Com imagem central
-
-Coloque um PNG/JPG quadrado (ex: o Cordeiro) em `assets/lamb.png`:
-
-```bash
-python generate.py \
-  --liturgical-year 2026 \
-  --api-key estevao_SEU_KEY_AQUI \
-  --center-image assets/lamb.png
-```
-
-### Outros prayer books
-
-```bash
-python generate.py \
-  --liturgical-year 2026 \
-  --api-key estevao_SEU_KEY_AQUI \
-  --prayer-book loc_1987
-```
-
-### Todas as opções
-
-```
---liturgical-year YEAR    Ano litúrgico (ex: 2026 = Advento 2025 → Cristo Rei 2026)
---api-key KEY             Ordo API key (começa com estevao_)
---api-base URL            URL base da API (default: https://api.estevao.app/api/v1)
---prayer-book CODE        Código do livro de oração (default: loc_2015)
---output PATH             Caminho de saída (default: wheel_YYYY_YYYY.svg)
---center-image PATH       PNG/JPG para o medalhão central (opcional)
-```
+| Variável | Valor |
+|---|---|
+| `LITURGICAL_API_KEY` | Sua chave da Ordo API |
+| `LITURGICAL_API_BASE` | URL base da API |
 
 ---
 
-## Exportar para PNG / PDF
+## Estrutura do projeto
 
-### Via Inkscape (recomendado para impressão)
-
-```bash
-inkscape wheel_2025_2026.svg \
-  --export-filename=wheel_2025_2026.png \
-  --export-dpi=300
 ```
-
-### Via cairosvg (Python)
-
-```bash
-pip install cairosvg
-python -c "
-import cairosvg
-cairosvg.svg2png(url='wheel_2025_2026.svg', write_to='wheel_2025_2026.png', dpi=300)
-"
-```
-
-### Via Inkscape — PDF para impressão offset
-
-```bash
-inkscape wheel_2025_2026.svg \
-  --export-filename=wheel_2025_2026.pdf \
-  --export-dpi=300
+liturgical-wheel/
+├── api/
+│   └── [year]/
+│       └── [endpoint].js   # Proxy serverless (esconde a API key)
+├── public/
+│   ├── index.html          # Aplicação completa (SVG + JS)
+│   ├── favicon.ico
+│   └── apple-touch-icon.png
+├── vercel.json             # Roteamento
+├── package.json
+└── .env                    # Local only — não commitar
 ```
 
 ---
 
 ## Como funciona
 
-O script faz **6 chamadas à API** para cada ano litúrgico gerado:
+O frontend faz **5 chamadas paralelas** à API (via proxy) para cada ano litúrgico:
 
-| Chamada | Endpoint | Dados usados |
-|---|---|---|
-| 1 | `GET /calendar/{ano-1}/key_dates` | Data de início do Advento |
-| 2 | `GET /calendar/{ano}/key_dates` | Data do Cristo Rei (fim) |
-| 3 | `GET /calendar/{ano-1}` | Dados de cada dia (nov–dez) |
-| 4 | `GET /calendar/{ano}` | Dados de cada dia (jan–nov) |
-| 5 | `GET /calendar/{ano-1}/seasons` | Quadra do Advento |
-| 6 | `GET /calendar/{ano}/seasons` | Demais quadras |
+| Endpoint | Dados usados |
+|---|---|
+| `GET /calendar/{ano}/overview` | Estações + key dates do ano atual |
+| `GET /calendar/{ano-1}/overview` | Estações do Advento anterior |
+| `GET /calendar/{ano-1}/key_dates` | Data de início do Advento |
+| `GET /calendar/{ano}/celebrations` | Celebrações do ano atual |
+| `GET /calendar/{ano-1}/celebrations` | Celebrações do ano anterior |
 
-Cada resposta é cacheada pela API por 1 mês, então chamadas repetidas ao mesmo ano são instantâneas do lado do servidor.
+O proxy em `api/[year]/[endpoint].js` injeta a API key no servidor — ela nunca é exposta ao browser.
 
-### Quais dias aparecem como raios?
+---
 
-- Todos os **domingos**
-- Qualquer dia com **`celebration_name`** preenchido (Festas Principais, Dias Santos, Festivais)
-
-O nome exibido é o `celebration_name` quando presente, ou o `week_name` do domingo.
-
-### Mapeamento de cores
-
-As cores retornadas pela API em português são mapeadas para hex:
+## Mapeamento de cores
 
 | API | Cor | Hex |
 |---|---|---|
@@ -132,43 +119,15 @@ As cores retornadas pela API em português são mapeadas para hex:
 | `roxo` / `violeta` | Roxo/Violeta | `#5B2D86` |
 | `vermelho` | Vermelho | `#AB1F1F` |
 | `rosa` | Rosa | `#CC6B88` |
-
-As cores das faixas de estação seguem a mesma paleta com saturação ligeiramente maior.
-
----
-
-## Customização
-
-Todas as constantes visuais estão no início de `generate.py`:
-
-```python
-# Tamanho da página
-PAGE_W = 2480   # px
-PAGE_H = 3508   # px (A4 @ 300dpi — trocar para 3508 × 4961 para A3)
-
-# Raios do gráfico
-R_INNER     = 230   # medalhão central
-R_SEASON_IN = 300   # borda interna da faixa de estação
-R_SPOKE_OUT = 1025  # comprimento dos raios
-
-# Largura angular de cada raio (graus)
-SPOKE_WIDTH_DEG = 0.45
-
-# Cores das faixas de estação
-SEASON_BG = {
-    "Advento":     "#4A235A",
-    "Natal":       "#E8D8B0",
-    ...
-}
-```
+| `preto` | Preto | `#333333` |
+| `dourado` | Dourado | `#D4B86A` |
 
 ---
 
 ## Datas de referência
 
-| Ano litúrgico | Início (Advento) | Páscoa | Pentecostes | Fim (Cristo Rei) |
+| Ano litúrgico | Início (Advento) | Páscoa | Pentecostes | Fim |
 |---|---|---|---|---|
-| 2024–2025 | 1 dez 2024 | 20 abr 2025 | 8 jun 2025 | 23 nov 2025 |
-| 2025–2026 | 30 nov 2025 | 5 abr 2026 | 24 mai 2026 | 22 nov 2026 |
-| 2026–2027 | 29 nov 2026 | 28 mar 2027 | 16 mai 2027 | 21 nov 2027 |
-| 2027–2028 | 28 nov 2027 | 16 abr 2028 | 4 jun 2028 | 26 nov 2028 |
+| 2024–2025 | 1 dez 2024 | 20 abr 2025 | 8 jun 2025 | 28 nov 2025 |
+| 2025–2026 | 30 nov 2025 | 5 abr 2026 | 24 mai 2026 | 28 nov 2026 |
+| 2026–2027 | 29 nov 2026 | 28 mar 2027 | 16 mai 2027 | 27 nov 2027 |

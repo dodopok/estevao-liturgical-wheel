@@ -7,7 +7,8 @@
   "scripts": {
     "serve": "vercel dev",
     "deploy": "vercel --prod",
-    "test:print": "node scripts/print-test.js"
+    "test:print": "node scripts/print-test.js",
+    "og-image": "node scripts/og-image.js"
   },
   "devDependencies": {
     "puppeteer-core": "^24.39.0",

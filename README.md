@@ -64,6 +64,21 @@ npm run test:print   # PDFs em tmp/print-test/
 Ele usa o Chrome já instalado na máquina; se não achar, informe o caminho com
 `CHROME_PATH=/caminho/do/chrome`.
 
+### Imagem de compartilhamento
+
+`public/og-image.png` é a miniatura que aparece ao compartilhar o link no
+WhatsApp, no Instagram ou no X. Ela é um arquivo estático versionado — só
+precisa ser regerada se o **desenho da roda** mudar:
+
+```bash
+npm run og-image
+```
+
+O script desenha a roda com o próprio `index.html`, buscando dados reais do
+proxy em produção (não precisa de `.env`), e compõe o quadro 1200×630. O ano
+não aparece na arte de propósito, para a imagem não vencer na virada do ano
+litúrgico. Aponte para outra origem com `API_ORIGIN=https://...`.
+
 ---
 
 ## Deploy na Vercel
@@ -90,10 +105,12 @@ liturgical-wheel/
 │       └── [endpoint].js   # Proxy serverless (esconde a API key)
 ├── public/
 │   ├── index.html          # Aplicação completa (SVG + JS)
+│   ├── og-image.png        # Miniatura de compartilhamento (gerada)
 │   ├── favicon.ico
 │   └── apple-touch-icon.png
 ├── scripts/
-│   └── print-test.js       # Gera PDFs de cada formato pra conferir o layout
+│   ├── print-test.js       # Gera PDFs de cada formato pra conferir o layout
+│   └── og-image.js         # Gera a miniatura de compartilhamento
 ├── vercel.json             # Roteamento
 ├── package.json
 ├── .env.example            # Modelo das variáveis

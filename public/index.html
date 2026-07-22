@@ -588,10 +588,10 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
   seasonGroups.forEach((g, gi) => {
     const a1 = g.startIdx * slotAngle;
     const a2 = (g.endIdx + 1) * slotAngle;
-    if (gi > 0) {
-      const p1 = polar(R_SEASONS_INNER, a1), p2 = polar(R_SEASONS_OUTER, a1);
-      el("line", { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: "#fff", "stroke-width": "1.5" });
-    }
+    // Sem separador entre as estações: a ordem do ano litúrgico faz com que
+    // duas estações vizinhas nunca tenham a mesma cor, então a troca de cor já
+    // delimita. A linha branca de 1.5 que havia aqui destoava dos fios
+    // dourados do resto do desenho e lia como um rasgo sobre as cores escuras.
     if (!g.season) return;
     const color = SEASON_COLORS[g.season.slug] || "#4A7C59";
     const textColor = (color === "#F5EDD8") ? "#b8943e" : "#fff";

@@ -367,7 +367,12 @@ function textOnArc(pathD, txt, fontSize, fill, fontFamily, fontWeight, letterSpa
   const t = el("text", {
     fill, "font-family": fontFamily || "'Cinzel', serif",
     "font-size": fontSize, "font-weight": fontWeight || "600",
-    "letter-spacing": letterSpacing || "0"
+    "letter-spacing": letterSpacing || "0",
+    // Sem isto é a linha de base que fica sobre o arco, e os glifos crescem
+    // todos para um lado — para fora na metade de cima, para dentro na de
+    // baixo (onde o arco é invertido). Centraliza a caixa sobre o arco nas
+    // duas direções, deixando o texto na mesma faixa em toda a volta.
+    "dominant-baseline": "central"
   });
   const tp = document.createElementNS(SVG_NS, "textPath");
   tp.setAttribute("href", `#${id}`);

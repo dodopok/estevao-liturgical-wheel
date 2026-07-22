@@ -106,6 +106,66 @@
   #panel button:hover { background: #a07830; }
   #status { margin-top: 10px; font-size: 12px; color: #888; text-align: center; }
 
+  #loading {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: #fdfaf0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    text-align: center;
+    padding: 24px;
+    transition: opacity .35s ease, visibility .35s ease;
+  }
+  #loading.is-done {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .loading-mark {
+    width: 62px;
+    height: 62px;
+    border: 3px solid #ede5d0;
+    border-top-color: #b8943e;
+    border-radius: 50%;
+    animation: loading-spin 1s linear infinite;
+  }
+  @keyframes loading-spin { to { transform: rotate(360deg); } }
+  #loading-text {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(12px, 2.2vw, 15px);
+    letter-spacing: 2px;
+    color: #8a6e2f;
+    max-width: 32ch;
+    line-height: 1.6;
+  }
+  #loading-retry {
+    padding: 9px 22px;
+    background: #b8943e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  #loading-retry:hover { background: #a07830; }
+  #loading-retry[hidden] { display: none; }
+  /* Erro não gira: o giro comunica progresso, e não há mais progresso. */
+  #loading.is-error .loading-mark {
+    animation: none;
+    border-color: #d8cdb0;
+    border-top-color: #a82832;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .loading-mark { animation: none; }
+    #loading { transition: none; }
+  }
+
   #pdf-wrap {
     position: fixed;
     bottom: 20px;
@@ -206,7 +266,7 @@
      escolhido, o resultado só muda de escala em vez de estourar a página.
      As porcentagens são as medidas originais do A3 (largura 297mm). */
   @media print {
-    #panel, #pdf-wrap { display: none !important; }
+    #panel, #pdf-wrap, #loading { display: none !important; }
 
     body {
       background: white;
@@ -261,6 +321,14 @@
 <style id="print-size"></style>
 </head>
 <body>
+<!-- Começa visível: o calendário é gerado no carregamento, e sem isto a
+     primeira coisa que aparece é a página vazia. -->
+<div id="loading" role="status" aria-live="polite">
+  <div class="loading-mark" aria-hidden="true"></div>
+  <p id="loading-text">Gerando o calendário…</p>
+  <button type="button" id="loading-retry" hidden onclick="generate()">Tentar novamente</button>
+</div>
+
 <div class="page">
   <div class="page-header">
     <h1 id="main-title">O Ano Litúrgico</h1>
@@ -437,7 +505,11 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
 
   const advent1PrevDate = keyDatesPrev.first_sunday_of_advent?.date;
   const advent1CurrDate = overview.key_dates?.first_sunday_of_advent?.date;
-  if (!advent1PrevDate || !advent1CurrDate) return;
+  // Sem as duas datas não há como calcular a volta. Lança em vez de desistir
+  // em silêncio, que deixava a roda em branco com o painel dizendo "Concluído!".
+  if (!advent1PrevDate || !advent1CurrDate) {
+    throw new Error('Resposta sem first_sunday_of_advent: não dá para delimitar o ano litúrgico');
+  }
 
   const startDate = new Date(advent1PrevDate + 'T12:00:00Z');
   const endDate = new Date(advent1CurrDate + 'T12:00:00Z');
@@ -516,10 +588,10 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
   seasonGroups.forEach((g, gi) => {
     const a1 = g.startIdx * slotAngle;
     const a2 = (g.endIdx + 1) * slotAngle;
-    if (gi > 0) {
-      const p1 = polar(R_SEASONS_INNER, a1), p2 = polar(R_SEASONS_OUTER, a1);
-      el("line", { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: "#fff", "stroke-width": "1.5" });
-    }
+    // Sem separador entre as estações: a ordem do ano litúrgico faz com que
+    // duas estações vizinhas nunca tenham a mesma cor, então a troca de cor já
+    // delimita. A linha branca de 1.5 que havia aqui destoava dos fios
+    // dourados do resto do desenho e lia como um rasgo sobre as cores escuras.
     if (!g.season) return;
     const color = SEASON_COLORS[g.season.slug] || "#4A7C59";
     const textColor = (color === "#F5EDD8") ? "#b8943e" : "#fff";
@@ -627,11 +699,33 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
   document.fonts.ready.then(fitEntryLabels);
 }
 
+const loadingEl = () => document.getElementById('loading');
+
+function showLoading(msg) {
+  const l = loadingEl();
+  l.classList.remove('is-done', 'is-error');
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading-retry').hidden = true;
+}
+
+function hideLoading() {
+  loadingEl().classList.add('is-done');
+}
+
+function failLoading(msg) {
+  const l = loadingEl();
+  l.classList.remove('is-done');
+  l.classList.add('is-error');
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading-retry').hidden = false;
+}
+
 async function generate() {
   const year = document.getElementById('inp-year').value;
   const pb = document.getElementById('inp-pb').value;
   const status = document.getElementById('status');
   status.textContent = "Buscando dados...";
+  showLoading("Gerando o calendário…");
   window._wheelReady = false;
   try {
     const [overview, keyDatesPrev, overviewPrev, celebrationsCurr, celebrationsPrev] = await Promise.all([
@@ -645,9 +739,11 @@ async function generate() {
     renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev, keyDatesPrev);
     status.textContent = "Concluído!";
     window._wheelReady = true;
+    hideLoading();
   } catch (err) {
     status.textContent = "Erro ao buscar dados da API.";
     console.error(err);
+    failLoading("Não foi possível gerar o calendário. Verifique a conexão e tente de novo.");
   }
 }
 

@@ -106,10 +106,17 @@
   #panel button:hover { background: #a07830; }
   #status { margin-top: 10px; font-size: 12px; color: #888; text-align: center; }
 
-  #btn-pdf {
+  #pdf-wrap {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  #btn-pdf {
     padding: 10px 20px;
     background: #b8943e;
     color: white;
@@ -120,14 +127,46 @@
     font-weight: 600;
     letter-spacing: 1px;
     cursor: pointer;
-    z-index: 1000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
   }
   #btn-pdf:hover { background: #a07830; }
   #btn-pdf:disabled { background: #ccc; cursor: wait; }
+
+  #pdf-menu {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+  #pdf-menu[hidden] { display: none; }
+  #pdf-menu button {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 9px 14px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #f2f2f2;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Cinzel', serif;
+  }
+  #pdf-menu button:last-child { border-bottom: none; }
+  #pdf-menu button:hover { background: #faf6ea; }
+  #pdf-menu .fmt { font-size: 13px; font-weight: 600; color: #8a6e2f; letter-spacing: 1px; }
+  #pdf-menu .dim {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+  }
 
   @media (max-width: 700px) {
     body {
@@ -151,17 +190,20 @@
       margin: 16px 12px 0;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    #btn-pdf {
+    #pdf-wrap {
       bottom: 12px;
       right: 12px;
+    }
+    #btn-pdf {
       font-size: 11px;
       padding: 8px 14px;
     }
   }
 
+  /* Regras de impressão independentes do formato — as que dependem do
+     tamanho do papel ficam em #print-size, geradas por applyPaper(). */
   @media print {
-    @page { size: A3 portrait; margin: 0; }
-    #panel, #btn-pdf { display: none !important; }
+    #panel, #pdf-wrap { display: none !important; }
 
     body {
       background: white;
@@ -172,43 +214,19 @@
 
     .page {
       width: 100%;
-      min-height: 420mm;
-      padding: 14mm 12mm 14mm;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
     }
 
-    .page-header {
-      text-align: center;
-      padding-top: 22mm;
-    }
-
-    h1 {
-      font-size: 52pt !important;
-      margin-bottom: 2mm;
-      letter-spacing: 3px;
-    }
-
-    h2 {
-      font-size: 16pt !important;
-      margin-bottom: 0;
-      letter-spacing: 2px;
-    }
-
-    .wheel-container {
-      width: 255mm;
-      height: 255mm;
-      margin: 0 auto;
-    }
-
-    .footer {
-      margin-top: 6mm;
-      font-size: 8pt;
-    }
+    .page-header { text-align: center; }
+    h1 { letter-spacing: 3px; }
+    h2 { margin-bottom: 0; letter-spacing: 2px; }
+    .wheel-container { margin: 0 auto; }
   }
 </style>
+<style id="print-size"></style>
 </head>
 <body>
 <div class="page">
@@ -222,10 +240,13 @@
   <div class="footer">Calendário do Ano Cristão · CaminhoAnglicano.com.br</div>
 </div>
 
-<button id="btn-pdf" onclick="downloadPdf()">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-  Baixar PDF A3
-</button>
+<div id="pdf-wrap">
+  <div id="pdf-menu" hidden></div>
+  <button id="btn-pdf" onclick="togglePdfMenu()" aria-haspopup="true" aria-expanded="false">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Baixar PDF
+  </button>
+</div>
 
 <div id="panel">
   <h3>Configurar</h3>
@@ -552,9 +573,65 @@ async function generate() {
   }
 }
 
-function downloadPdf() {
+// Formatos ISO 216 em mm — a escala é relativa ao A3, o layout original.
+const PAPER_SIZES = {
+  A1: { w: 594, h: 841 },
+  A2: { w: 420, h: 594 },
+  A3: { w: 297, h: 420 },
+  A4: { w: 210, h: 297 }
+};
+
+const cm = mm => (mm / 10).toFixed(1).replace('.', ',');
+
+function applyPaper(fmt) {
+  const p = PAPER_SIZES[fmt];
+  const k = p.w / PAPER_SIZES.A3.w;
+  const s = (base, unit) => +(base * k).toFixed(2) + unit;
+  document.getElementById('print-size').textContent = `
+    @media print {
+      @page { size: ${fmt} portrait; margin: 0; }
+      .page { min-height: ${p.h}mm; padding: ${s(14,'mm')} ${s(12,'mm')}; }
+      .page-header { padding-top: ${s(22,'mm')}; }
+      h1 { font-size: ${s(52,'pt')} !important; margin-bottom: ${s(2,'mm')}; }
+      h2 { font-size: ${s(16,'pt')} !important; }
+      .wheel-container { width: ${s(255,'mm')}; height: ${s(255,'mm')}; }
+      .footer { margin-top: ${s(6,'mm')}; font-size: ${s(8,'pt')}; }
+    }`;
+}
+
+function buildPdfMenu() {
+  const menu = document.getElementById('pdf-menu');
+  menu.innerHTML = Object.entries(PAPER_SIZES).map(([fmt, p]) =>
+    `<button type="button" data-fmt="${fmt}">
+       <span class="fmt">${fmt}</span>
+       <span class="dim">${cm(p.w)} × ${cm(p.h)} cm</span>
+     </button>`).join('');
+  menu.querySelectorAll('button').forEach(b =>
+    b.addEventListener('click', () => downloadPdf(b.dataset.fmt)));
+}
+
+function togglePdfMenu(force) {
+  const menu = document.getElementById('pdf-menu');
+  const open = force !== undefined ? force : menu.hidden;
+  menu.hidden = !open;
+  document.getElementById('btn-pdf').setAttribute('aria-expanded', String(open));
+}
+
+function downloadPdf(fmt) {
+  applyPaper(fmt);
+  togglePdfMenu(false);
   window.print();
 }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#pdf-wrap')) togglePdfMenu(false);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') togglePdfMenu(false);
+});
+
+buildPdfMenu();
+applyPaper('A3');
 
 // Auto-generate when loaded by Puppeteer for PDF export
 const _params = new URLSearchParams(location.search);

@@ -200,8 +200,11 @@
     }
   }
 
-  /* Regras de impressão independentes do formato — as que dependem do
-     tamanho do papel ficam em #print-size, geradas por applyPaper(). */
+  /* Layout de impressão proporcional ao papel, não em mm fixos: todos os
+     formatos A têm a mesma proporção (1:√2), então as medidas relativas
+     valem pra qualquer um. Se o papel do diálogo divergir do formato
+     escolhido, o resultado só muda de escala em vez de estourar a página.
+     As porcentagens são as medidas originais do A3 (largura 297mm). */
   @media print {
     #panel, #pdf-wrap { display: none !important; }
 
@@ -214,16 +217,42 @@
 
     .page {
       width: 100%;
+      min-height: 100vh;
+      padding: 4.714% 4.040%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
     }
 
-    .page-header { text-align: center; }
-    h1 { letter-spacing: 3px; }
-    h2 { margin-bottom: 0; letter-spacing: 2px; }
-    .wheel-container { margin: 0 auto; }
+    .page-header {
+      text-align: center;
+      padding-top: 7.407%;
+    }
+
+    h1 {
+      font-size: 6.176vw !important;
+      margin-bottom: 0.673%;
+      letter-spacing: 3px;
+    }
+
+    h2 {
+      font-size: 1.900vw !important;
+      margin-bottom: 0;
+      letter-spacing: 2px;
+    }
+
+    .wheel-container {
+      width: 85.859%;
+      height: auto;
+      aspect-ratio: 1;
+      margin: 0 auto;
+    }
+
+    .footer {
+      margin-top: 2.020%;
+      font-size: 0.950vw;
+    }
   }
 </style>
 <style id="print-size"></style>
@@ -583,20 +612,15 @@ const PAPER_SIZES = {
 
 const cm = mm => (mm / 10).toFixed(1).replace('.', ',');
 
+// O resto do layout de impressão é proporcional (ver @media print no <style>),
+// então só o tamanho do papel precisa ser injetado aqui.
 function applyPaper(fmt) {
   const p = PAPER_SIZES[fmt];
-  const k = p.w / PAPER_SIZES.A3.w;
-  const s = (base, unit) => +(base * k).toFixed(2) + unit;
-  document.getElementById('print-size').textContent = `
-    @media print {
-      @page { size: ${fmt} portrait; margin: 0; }
-      .page { min-height: ${p.h}mm; padding: ${s(14,'mm')} ${s(12,'mm')}; }
-      .page-header { padding-top: ${s(22,'mm')}; }
-      h1 { font-size: ${s(52,'pt')} !important; margin-bottom: ${s(2,'mm')}; }
-      h2 { font-size: ${s(16,'pt')} !important; }
-      .wheel-container { width: ${s(255,'mm')}; height: ${s(255,'mm')}; }
-      .footer { margin-top: ${s(6,'mm')}; font-size: ${s(8,'pt')}; }
-    }`;
+  // Dimensões explícitas, não o nome do formato: o CSS só define os keywords
+  // A5/A4/A3/B5/B4/letter/legal/ledger — "A2" e "A1" são inválidos e fazem o
+  // browser descartar a regra inteira e imprimir no papel padrão dele.
+  document.getElementById('print-size').textContent =
+    `@media print { @page { size: ${p.w}mm ${p.h}mm; margin: 0; } }`;
 }
 
 function buildPdfMenu() {

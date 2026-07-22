@@ -307,6 +307,13 @@ const R_ENTRIES_OUTER = 340;
 const R_SEASONS_INNER = 340;
 const R_SEASONS_OUTER = 368;
 
+// Trecho do raio em que o nome da celebração é escrito, e os limites de corpo.
+const ENTRY_LABEL_OUTER  = R_ENTRIES_OUTER - 13;
+const ENTRY_LABEL_INNER  = R_ENTRIES_INNER + 16;
+const ENTRY_LABEL_LENGTH = ENTRY_LABEL_OUTER - ENTRY_LABEL_INNER;
+const ENTRY_FONT_MAX = 6.5;
+const ENTRY_FONT_MIN = 3.6;
+
 const COLOR_MAP = {
   "branco": "#F5EDD8", "verde": "#3B6E34", "roxo": "#5B2D86",
   "violeta": "#5B2D86", "vermelho": "#AB1F1F", "rosa": "#CC6B88",
@@ -330,6 +337,34 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const svg = document.querySelector("svg.wheel");
 let idCounter = 0;
 const uid = () => `p${idCounter++}`;
+
+// Nomes de celebração escritos ao longo do raio. O corpo do texto é medido em
+// vez de estimado pela contagem de caracteres: a largura depende dos glifos, e
+// tudo que passa do fim do caminho o SVG simplesmente não desenha — era o que
+// truncava nomes longos como "Anunciação de Nosso Senhor Jesus Cristo à Bem
+// Aventurada Virgem Maria".
+let entryLabels = [];
+
+function fitEntryLabels() {
+  entryLabels.forEach(({ t, tp }) => {
+    t.setAttribute("font-size", ENTRY_FONT_MAX);
+    tp.removeAttribute("textLength");
+    tp.removeAttribute("lengthAdjust");
+
+    const width = t.getComputedTextLength();
+    if (width <= ENTRY_LABEL_LENGTH) return;
+
+    const size = ENTRY_FONT_MAX * ENTRY_LABEL_LENGTH / width;
+    t.setAttribute("font-size", Math.max(ENTRY_FONT_MIN, +size.toFixed(2)));
+
+    // Nome longo a ponto de não caber nem no corpo mínimo: condensa o traçado,
+    // que ainda é legível, em vez de deixar o fim do nome sumir.
+    if (size < ENTRY_FONT_MIN) {
+      tp.setAttribute("textLength", ENTRY_LABEL_LENGTH);
+      tp.setAttribute("lengthAdjust", "spacingAndGlyphs");
+    }
+  });
+}
 
 function polar(r, deg) {
   const rad = (deg - 90) * Math.PI / 180;
@@ -398,6 +433,7 @@ async function fetchApi(endpoint, year, pb) {
 
 function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev, keyDatesPrev) {
   svg.innerHTML = '';
+  entryLabels = [];
 
   const advent1PrevDate = keyDatesPrev.first_sunday_of_advent?.date;
   const advent1CurrDate = overview.key_dates?.first_sunday_of_advent?.date;
@@ -526,11 +562,10 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
     el("path", { d: wedgePath(R_ENTRIES_INNER, R_ENTRIES_OUTER, a1, a2), fill: bg, stroke: "#fff", "stroke-width": "0.5" });
 
     const displayName = (entry.name || "DOMINGO").toUpperCase();
-    const fs = displayName.length > 55 ? "4.5" : displayName.length > 40 ? "5.5" : "6.5";
 
     const needsFlip = midA < 180;
-    const ptOuter = polar(R_ENTRIES_OUTER - 13, midA);
-    const ptInner = polar(R_ENTRIES_INNER + 16, midA);
+    const ptOuter = polar(ENTRY_LABEL_OUTER, midA);
+    const ptInner = polar(ENTRY_LABEL_INNER, midA);
 
     const pathId = uid();
     el("path", { id: pathId, d: `M${ptOuter.x},${ptOuter.y} L${ptInner.x},${ptInner.y}`, fill: "none" });
@@ -538,7 +573,7 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
     const textContent = needsFlip ? [...displayName].reverse().join('') : displayName;
     const textAttrs = {
       fill: text, "font-family": "'Cinzel', serif",
-      "font-size": fs, "font-weight": "700", "dominant-baseline": "central"
+      "font-size": ENTRY_FONT_MAX, "font-weight": "700", "dominant-baseline": "central"
     };
     if (needsFlip) textAttrs.rotate = "180";
 
@@ -548,6 +583,7 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
     tp.setAttribute("startOffset", "0%");
     tp.textContent = textContent;
     t.appendChild(tp);
+    entryLabels.push({ t, tp });
 
     // Day number — inner arc, just inside entries ring
     const dayNum = entry.dateStr.split('-')[2].replace(/^0/, '');
@@ -584,6 +620,11 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
   irTp.setAttribute("text-anchor", "middle");
   irTp.textContent = "EIS O CORDEIRO DE DEUS, QUE TIRA O PECADO DO MUNDO";
   irText.appendChild(irTp);
+
+  fitEntryLabels();
+  // A medição só vale com a Cinzel já carregada; com a fonte de fallback as
+  // larguras saem diferentes, então refaz o ajuste quando ela chegar.
+  document.fonts.ready.then(fitEntryLabels);
 }
 
 async function generate() {

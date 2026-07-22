@@ -35,8 +35,18 @@ function findChrome() {
   return found;
 }
 
-// Um ano litúrgico simplificado: só as estações, sem celebrações nomeadas.
-// Basta pra validar o layout — a roda desenha "DOMINGO" nas fatias.
+// Celebrações com os nomes mais longos do calendário, que são o caso difícil
+// pro dimensionamento do texto radial: o que passa do fim do caminho o SVG não
+// desenha, então nome comprido demais aparece truncado.
+const MOCK_CELEBRATIONS = [
+  { date: '2026-03-25', name: 'Anunciação de Nosso Senhor Jesus Cristo à Bem Aventurada Virgem Maria', color: 'branco', type: 'principal_feast' },
+  { date: '2026-02-02', name: 'Apresentação de Nosso Senhor Jesus Cristo no Templo', color: 'branco', type: 'principal_feast' },
+  { date: '2026-08-06', name: 'Transfiguração de Nosso Senhor Jesus Cristo', color: 'branco', type: 'principal_feast' },
+  { date: '2026-01-01', name: 'Santo Nome e Circuncisão de Nosso Senhor Jesus Cristo', color: 'branco', type: 'principal_feast' }
+];
+
+// Um ano litúrgico simplificado: as estações, com as celebrações acima.
+// Basta pra validar o layout — a roda desenha "DOMINGO" nas demais fatias.
 const MOCK_SEASONS = [
   { slug: 'season-advent', name: 'Advento', start_date: '2025-11-30', end_date: '2025-12-24' },
   { slug: 'season-christmas', name: 'Natal', start_date: '2025-12-25', end_date: '2026-01-05' },
@@ -60,7 +70,7 @@ async function main() {
   const browser = await puppeteer.launch({ executablePath: findChrome(), headless: true });
   const page = await browser.newPage();
 
-  await page.evaluateOnNewDocument(seasons => {
+  await page.evaluateOnNewDocument((seasons, celebrations) => {
     window.fetch = async url => {
       const [, year, endpoint] = String(url).match(/api\/(\d+)\/(\w+)/);
       let body = [];
@@ -70,16 +80,33 @@ async function main() {
           : { seasons: [] };
       } else if (endpoint === 'key_dates') {
         body = { first_sunday_of_advent: { date: '2025-11-30' } };
+      } else if (endpoint === 'celebrations' && year === '2026') {
+        body = celebrations;
       }
       return { ok: true, status: 200, json: async () => body };
     };
-  }, MOCK_SEASONS);
+  }, MOCK_SEASONS, MOCK_CELEBRATIONS);
 
   await page.goto(PAGE_URL, { waitUntil: 'networkidle0' });
   await page.waitForFunction('window._wheelReady === true', { timeout: 15000 });
   await page.evaluate(() => document.fonts.ready);
 
   let failures = 0;
+
+  // Nenhum nome de celebração pode passar do fim do seu caminho radial.
+  const overflowing = await page.evaluate(() =>
+    entryLabels
+      .filter(({ t }) => t.getComputedTextLength() > ENTRY_LABEL_LENGTH + 0.5)
+      .map(({ t, tp }) => `${tp.textContent} (${t.getComputedTextLength().toFixed(1)} > ${ENTRY_LABEL_LENGTH})`)
+  );
+  if (overflowing.length) {
+    failures++;
+    console.log(`✗ ${overflowing.length} nome(s) transbordando:`);
+    overflowing.forEach(n => console.log(`    ${n}`));
+  } else {
+    console.log('✓ nenhum nome de celebração transborda o raio');
+  }
+
   for (const fmt of Object.keys(await page.evaluate(() => PAPER_SIZES))) {
     await page.evaluate(f => applyPaper(f), fmt);
 

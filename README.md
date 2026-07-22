@@ -36,12 +36,17 @@ git clone <este-repo>
 cd liturgical-wheel
 npm install
 cp .env.example .env   # preencha as variáveis
-npm run dev            # → http://localhost:3000
+npx vercel link        # só na primeira vez: escolha o projeto existente
+npm run serve          # → http://localhost:3000
 ```
 
 O [Vercel CLI](https://vercel.com/docs/cli) é uma `devDependency` — não precisa
-instalar nada globalmente, o `npm install` já resolve. Na primeira execução ele
-pede login e a vinculação do projeto.
+instalar nada globalmente, o `npm install` já resolve.
+
+> O script chama-se `serve`, e **não** `dev`, de propósito: sem framework
+> detectado, o `vercel dev` executa o script `dev` do `package.json`: se esse
+> script for o próprio `vercel dev`, ele aborta com
+> *"must not recursively invoke itself"*.
 
 > O `npm audit` reporta vulnerabilidades nas dependências do CLI da Vercel. São
 > todas de desenvolvimento: o app publicado não tem nenhuma dependência de

@@ -390,11 +390,6 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
     for (let j = idx + 1; j < N; j++) { if (renderedEntries[j]._season) { entry._season = renderedEntries[j]._season; return; } }
   });
 
-  renderedEntries.forEach((entry, idx) => {
-    const color = SEASON_COLORS[entry._season?.slug] || "#4A7C59";
-    el("path", { d: wedgePath(R_SEASONS_INNER, R_SEASONS_OUTER, idx * slotAngle, (idx + 1) * slotAngle), fill: color, stroke: "none" });
-  });
-
   const SEASON_ENTRY_COLOR = {
     "season-advent": "violeta", "season-christmas": "branco",
     "season-epiphany": "verde",  "season-lent": "violeta",
@@ -417,6 +412,13 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
       seasonGroups.push(curGroup);
     } else { curGroup.endIdx = idx; }
   });
+  // Um único caminho por estação — wedges por dia deixavam frestas de antialiasing no PDF
+  seasonGroups.forEach(g => {
+    const color = SEASON_COLORS[g.season?.slug] || "#4A7C59";
+    const d = wedgePath(R_SEASONS_INNER, R_SEASONS_OUTER, g.startIdx * slotAngle, (g.endIdx + 1) * slotAngle);
+    el("path", { d, fill: color, stroke: color, "stroke-width": "0.3" });
+  });
+
   seasonGroups.forEach((g, gi) => {
     const a1 = g.startIdx * slotAngle;
     const a2 = (g.endIdx + 1) * slotAngle;

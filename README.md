@@ -1,6 +1,6 @@
 # O Ano Litúrgico — Calendário do Ano Cristão
 
-Aplicação web que gera um calendário circular interativo do Ano Litúrgico Anglicano, buscando os dados da **Ordo API**. Disponível em **[calendario.caminhoanglicano.com.br](https://calendario.caminhoanglicano.com.br)**.
+Aplicação web que gera um calendário circular interativo do Ano Litúrgico Anglicano, buscando os dados da **[Estêvão API](https://estevao.caminhoanglicano.com.br/)**. Disponível em **[calendario.caminhoanglicano.com.br](https://calendario.caminhoanglicano.com.br)**.
 
 ---
 
@@ -13,8 +13,8 @@ Uma roda visual do Ano Litúrgico com:
 - **Anel de meses** com os meses do ano civil
 - **Números dos dias** em arco interno
 - **Medalhão central** com a inscrição "Agnus Dei" e "Eis o Cordeiro de Deus"
-- Suporte a múltiplos **Livros de Oração** (LOC 1662, 1987, LOCB 2008, LOC 2015, LOC 2021)
-- Download de **PDF A3 vetorizado** via impressão nativa do browser
+- Suporte a múltiplos **Livros de Oração** (LOC 1549, 1662, 1987, LOCb 2008, LOC 2015, 2019, 2021)
+- Download de **PDF vetorizado em A1, A2, A3 ou A4** via impressão nativa do browser
 
 ---
 
@@ -24,54 +24,54 @@ Uma roda visual do Ano Litúrgico com:
 |---|---|
 | Frontend | HTML + SVG + JavaScript vanilla |
 | Servidor / Proxy | Vercel Serverless Functions |
-| PDF | `window.print()` com `@page { size: A3 }` (vetorizado) |
-| Dados | [Ordo API](http://localhost:3000) |
+| PDF | `window.print()` com `@page { size }` em mm (vetorizado) |
+| Dados | [Estêvão API](https://estevao.caminhoanglicano.com.br/) |
 
 ---
 
 ## Desenvolvimento local
 
-**Pré-requisito:** [Vercel CLI](https://vercel.com/docs/cli)
-
-```bash
-npm install -g vercel
-```
-
-Clone e configure:
-
 ```bash
 git clone <este-repo>
 cd liturgical-wheel
+npm install
 cp .env.example .env   # preencha as variáveis
+npm run dev            # → http://localhost:3000
 ```
 
-Crie um `.env` com:
+O [Vercel CLI](https://vercel.com/docs/cli) é uma `devDependency` — não precisa
+instalar nada globalmente, o `npm install` já resolve. Na primeira execução ele
+pede login e a vinculação do projeto.
 
-```env
-LITURGICAL_API_KEY=sua_chave_aqui
-LITURGICAL_API_BASE=http://localhost:3000/api/v1
-```
+> O `npm audit` reporta vulnerabilidades nas dependências do CLI da Vercel. São
+> todas de desenvolvimento: o app publicado não tem nenhuma dependência de
+> runtime. Rodar `npm audit fix --force` só faz downgrade do CLI.
 
-Rode localmente:
+### Testando a impressão
+
+Bugs de impressão não aparecem na tela — só no PDF. O script abaixo gera um PDF
+de cada formato (com dados simulados) e falha se algum não couber em uma página:
 
 ```bash
-npx vercel dev
-# → http://localhost:3000
+npm run test:print   # PDFs em tmp/print-test/
 ```
+
+Ele usa o Chrome já instalado na máquina; se não achar, informe o caminho com
+`CHROME_PATH=/caminho/do/chrome`.
 
 ---
 
 ## Deploy na Vercel
 
 ```bash
-npx vercel --prod
+npm run deploy
 ```
 
 Configure as variáveis de ambiente no dashboard da Vercel em **Settings → Environment Variables**:
 
 | Variável | Valor |
 |---|---|
-| `LITURGICAL_API_KEY` | Sua chave da Ordo API |
+| `LITURGICAL_API_KEY` | Sua chave da Estêvão API |
 | `LITURGICAL_API_BASE` | URL base da API |
 
 ---
@@ -87,8 +87,11 @@ liturgical-wheel/
 │   ├── index.html          # Aplicação completa (SVG + JS)
 │   ├── favicon.ico
 │   └── apple-touch-icon.png
+├── scripts/
+│   └── print-test.js       # Gera PDFs de cada formato pra conferir o layout
 ├── vercel.json             # Roteamento
 ├── package.json
+├── .env.example            # Modelo das variáveis
 └── .env                    # Local only — não commitar
 ```
 
@@ -106,7 +109,12 @@ O frontend faz **5 chamadas paralelas** à API (via proxy) para cada ano litúrg
 | `GET /calendar/{ano}/celebrations` | Celebrações do ano atual |
 | `GET /calendar/{ano-1}/celebrations` | Celebrações do ano anterior |
 
-O proxy em `api/[year]/[endpoint].js` injeta a API key no servidor — ela nunca é exposta ao browser.
+O proxy em `api/[year]/[endpoint].js` injeta a API key no servidor — ela nunca é
+exposta ao browser. Ele também valida `year`, `endpoint` e `pb` contra uma lista
+fechada (a URL é pública, então sem isso a chave daria acesso a qualquer rota da
+Estêvão API) e devolve `Cache-Control` com `s-maxage`, já que o calendário de um
+(ano, livro de oração) nunca muda — o CDN da Vercel serve as visitas seguintes
+sem tocar na Estêvão API.
 
 ---
 

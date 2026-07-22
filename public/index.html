@@ -227,7 +227,7 @@
 
     .page-header {
       text-align: center;
-      padding-top: 7.407%;
+      padding-top: 3.5%;
     }
 
     h1 {
@@ -242,8 +242,11 @@
       letter-spacing: 2px;
     }
 
+    /* Ocupa toda a largura útil (100% menos as margens laterais da .page).
+       A largura é o limite: numa folha 1:√2 sempre sobra altura, então
+       aumentar a roda só é possível estreitando as margens. */
     .wheel-container {
-      width: 85.859%;
+      width: 100%;
       height: auto;
       aspect-ratio: 1;
       margin: 0 auto;

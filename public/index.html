@@ -512,6 +512,18 @@ async function fetchApi(endpoint, year, pb) {
   return resp.json();
 }
 
+// Número do Próprio (RCL) de um domingo do Tempo Comum. O Próprio é ancorado em
+// data fixa, independente da Páscoa: o Próprio 3 cai no domingo mais próximo de
+// 25/mai, e cada Próprio seguinte avança uma semana. Como o domingo já está a no
+// máximo 3 dias da âncora, arredondar a diferença em semanas devolve o número
+// exato — confere com o `properWeek` da Estêvão API.
+function properNumber(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  const anchor = Date.UTC(d.getUTCFullYear(), 4, 25, 12, 0, 0); // 25 de maio (Próprio 3)
+  const weeks = Math.round((d - anchor) / (7 * 24 * 60 * 60 * 1000));
+  return 3 + weeks;
+}
+
 function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev, keyDatesPrev) {
   svg.innerHTML = '';
   entryLabels = [];
@@ -646,7 +658,14 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
 
     el("path", { d: wedgePath(R_ENTRIES_INNER, R_ENTRIES_OUTER, a1, a2), fill: bg, stroke: "#fff", "stroke-width": "0.5" });
 
-    const displayName = (entry.name || "DOMINGO").toUpperCase();
+    // Domingos verdes do Tempo Comum (pós-Pentecostes) recebem o Próprio na
+    // frente. Festas principais que caem no domingo (Cristo Rei, Todos os
+    // Santos) têm type !== 'sunday' e ficam de fora, como no Ordo.
+    let baseName = entry.name || "DOMINGO";
+    if (entry.type === 'sunday' && entry._season?.slug === 'season-ordinary-time') {
+      baseName = `Próprio ${properNumber(entry.dateStr)} - ${baseName}`;
+    }
+    const displayName = baseName.toUpperCase();
 
     const needsFlip = midA < 180;
     const ptOuter = polar(ENTRY_LABEL_OUTER, midA);

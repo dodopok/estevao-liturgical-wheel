@@ -633,13 +633,27 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
     const k = `${y}-${m}`;
     if (k !== lastMonthKey) {
       if (monthSlots.length > 0) monthSlots[monthSlots.length - 1].endIdx = idx - 1;
-      monthSlots.push({ abbr: MONTH_ABBR[parseInt(m) - 1], startIdx: idx, endIdx: N - 1 });
+      monthSlots.push({
+        month: parseInt(m),
+        abbr: MONTH_ABBR[parseInt(m) - 1],
+        startIdx: idx,
+        endIdx: N - 1
+      });
       lastMonthKey = k;
     }
   });
-  // Cada mudança de mês precisa preservar o seu próprio setor. No começo do
-  // ano litúrgico, 30/11 pode ser a única marcação de novembro; agrupá-la a
-  // dezembro deslocava a fronteira do mês no anel.
+
+  // O ano litúrgico começa e termina no mesmo mês civil. Una os dois trechos
+  // através da emenda de 360° para que novembro forme um único setor contínuo,
+  // mesmo quando 30/11 é a primeira data da lista.
+  if (monthSlots.length > 1) {
+    const firstMonth = monthSlots[0];
+    const lastMonth = monthSlots[monthSlots.length - 1];
+    if (firstMonth.month === lastMonth.month) {
+      lastMonth.endIdx = firstMonth.endIdx + N;
+      monthSlots.shift();
+    }
+  }
 
   // --- 5. ENTRY WEDGES ---
   renderedEntries.forEach((entry, idx) => {

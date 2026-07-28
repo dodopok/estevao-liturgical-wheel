@@ -637,15 +637,9 @@ function renderWheel(overview, overviewPrev, celebrationsCurr, celebrationsPrev,
       lastMonthKey = k;
     }
   });
-  for (let i = monthSlots.length - 1; i >= 0; i--) {
-    if (monthSlots[i].endIdx - monthSlots[i].startIdx + 1 < 3) {
-      const next = monthSlots[i + 1];
-      const prev = monthSlots[i - 1];
-      if (next) next.startIdx = monthSlots[i].startIdx;
-      else if (prev) prev.endIdx = monthSlots[i].endIdx;
-      monthSlots.splice(i, 1);
-    }
-  }
+  // Cada mudança de mês precisa preservar o seu próprio setor. No começo do
+  // ano litúrgico, 30/11 pode ser a única marcação de novembro; agrupá-la a
+  // dezembro deslocava a fronteira do mês no anel.
 
   // --- 5. ENTRY WEDGES ---
   renderedEntries.forEach((entry, idx) => {
